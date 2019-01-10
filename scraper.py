@@ -55,12 +55,13 @@ def scraper(team_name):
     # Add team name column
     team_table["Team"] = team
 
+    # Return the table
     return team_table
 
 # Loop through teams list, calling scraper on each
 for team in teams:
     
-    # Add df onto the end of the main df
+    # Add the team table onto the end of the nfl_data df
     nfl_data = pd.concat([nfl_data, scraper(team)])
 
 # Read in the positions csv
