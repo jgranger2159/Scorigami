@@ -1,4 +1,4 @@
-# Import necessary libraries
+# Import necessary libraries (substring will require a pip install)
 from bs4 import BeautifulSoup as bs
 import requests
 import substring
@@ -8,6 +8,7 @@ import pymongo
 # Initialize PyMongo to work with MongoDBs
 conn = 'mongodb://localhost:27017'
 client = pymongo.MongoClient(conn)
+
 # Define database and collection
 db = client.nfl_teams
 collection = db.nfl_teams
@@ -22,7 +23,7 @@ prereq = soup.find_all('span', class_="xs-hide")
 teams = []
 
 # Format team names and add to list
-for x in test:
+for x in prereq:
     name = str(x)
     name = substring.substringByChar(name, startChar='>', endChar='<')
     if name.startswith('>') and name.endswith('<'):
@@ -35,7 +36,7 @@ nfl_data = pd.DataFrame(columns=("Active Players", "Pos", "Base Salary", "Signin
 
 # Scaper function
 def scraper(team_name):
-    
+
     # Format team name for url
     formatted = team_name.lower()
     formatted = formatted.replace(" ", "-")
@@ -53,13 +54,14 @@ def scraper(team_name):
     
     # Add team name column
     team_table["Team"] = team
-    
-    # Add df onto the end of the main df
-    nfl_data = pd.concat([nfl_data, team_table])
+
+    return team_table
 
 # Loop through teams list, calling scraper on each
 for team in teams:
-    scraper(team)
+    
+    # Add df onto the end of the main df
+    nfl_data = pd.concat([nfl_data, scraper(team)])
 
 # Read in the positions csv
 position_map = pd.read_csv("positions.csv")
@@ -69,3 +71,6 @@ nfl_data = nfl_data.merge(position_map, on = "Pos")
 
 # Insert results into Mongodb
 db.collection.insert_many(nfl_data.to_dict("records"))
+
+# This will show up if it worked, make sure to check MongoCompass for the documents as well
+print("Success!")
